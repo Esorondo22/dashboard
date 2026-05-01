@@ -11,7 +11,7 @@
 <style>
 :root{
   --bg:#07090d;--panel:#0e1520;--card:#131c28;--card2:#192434;
-  --gold:#f5c542;--green:#2ecc8a;--red:#f05c5c;--blue:#4ab3f4;--purple:#a78bfa;
+  --gold:#f5c542;--green:#2ecc8a;--red:#f05c5c;--blue:#4ab3f4;
   --text:#eef2f7;--muted:#6b7f96;
   --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.11);
   --shadow:0 8px 32px rgba(0,0,0,.5);
@@ -91,7 +91,6 @@ textarea{resize:vertical;min-height:88px}
 .btn-gold{background:var(--gold);color:#0d1117;box-shadow:0 4px 16px rgba(245,197,66,.25)}
 .btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border2)}
 .btn-blue{background:rgba(74,179,244,.12);color:#bae6fd;border:1px solid rgba(74,179,244,.25)}
-.btn-purple{background:rgba(167,139,250,.12);color:#ddd6fe;border:1px solid rgba(167,139,250,.25)}
 .btn-red{background:rgba(240,92,92,.1);color:#fca5a5;border:1px solid rgba(240,92,92,.2)}
 .btn-sm{padding:9px 15px;font-size:13px;min-height:40px;border-radius:8px}
 .btn-auto{width:auto}
@@ -256,14 +255,6 @@ main{flex:1;padding:16px 16px calc(var(--nav) + var(--safe) + 16px);max-width:10
 .note-text{font-size:13px;color:var(--text);line-height:1.65}
 
 /* ── AI PANEL ── */
-.ai-panel{background:linear-gradient(135deg,rgba(167,139,250,.07),rgba(74,179,244,.04));
-  border:1px solid rgba(167,139,250,.22);border-radius:var(--r);padding:16px;margin-bottom:12px}
-.ai-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--purple);
-  box-shadow:0 0 8px var(--purple);animation:pulse 2s infinite;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.ai-panel p{color:rgba(238,242,247,.82);font-size:13px;line-height:1.75}
-.ai-loading{color:var(--muted);font-style:italic}
 
 /* ── SEG CONTROL ── */
 .seg{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--border2);
@@ -435,6 +426,22 @@ main{flex:1;padding:16px 16px calc(var(--nav) + var(--safe) + 16px);max-width:10
 
     <!-- OVERVIEW -->
     <section id="overview" class="section active">
+      <!-- Coach quick-action bar (coach/admin only) -->
+      <div id="coachQuickBar" class="coach-only" style="display:none;margin-bottom:14px">
+        <div style="background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.18);
+          border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;
+          gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;
+              letter-spacing:.08em;margin-bottom:2px">Coach Quick Actions</div>
+            <div style="font-size:12px;color:var(--muted)" id="coachTeamLabel">Your Team</div>
+          </div>
+          <button class="btn btn-gold btn-sm btn-auto" onclick="show('profile',null)">✎ Log Metrics</button>
+          <button class="btn btn-ghost btn-sm btn-auto" onclick="show('notes',null)">📝 Add Note</button>
+          <button class="btn btn-ghost btn-sm btn-auto" onclick="show('addPlayer',null)">＋ Add Player</button>
+          <button class="btn btn-ghost btn-sm btn-auto" onclick="pullSheet()">↓ Sync</button>
+        </div>
+      </div>
       <div class="stats-grid">
         <div class="sc"><div class="sc-lbl">Total Players</div><div class="sc-val" id="sTot">--</div><div class="sc-accent"></div></div>
         <div class="sc"><div class="sc-lbl">Teams</div><div class="sc-val" id="sTeams">--</div><div class="sc-accent"></div></div>
@@ -491,15 +498,18 @@ main{flex:1;padding:16px 16px calc(var(--nav) + var(--safe) + 16px);max-width:10
           <div id="dMetrics" class="detail-metrics"></div>
           <div id="chartLegend" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px"></div>
           <div class="chart-wrap"><canvas id="progChart"></canvas></div>
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Log This Week</div>
-          <div id="logGrid" class="log-grid"></div>
-          <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
-            <button class="btn btn-gold btn-auto" style="flex:1;min-width:130px" onclick="saveWeek()">💾 Save Week</button>
-            <button class="abtn" onclick="openEditPlayer()">Edit</button>
-            <button class="abtn" onclick="openMovePlayer()">Move Team</button>
-            <button class="abtn btn-red admin-only" style="display:none;border-color:rgba(240,92,92,.3);color:var(--red)" onclick="deletePlayer()">Remove</button>
-            <span id="okMsg" style="font-size:12px;color:var(--green);font-weight:600;display:none">✓ Saved!</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;
+            flex-wrap:wrap;gap:8px;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--gold)">📋 Log / Edit Metrics</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-gold btn-sm btn-auto" onclick="saveWeek()">💾 Save Week</button>
+              <button class="abtn" onclick="openEditPlayer()">Edit Info</button>
+              <button class="abtn" onclick="openMovePlayer()">Move Team</button>
+              <button class="abtn btn-red admin-only" style="display:none;border-color:rgba(240,92,92,.3);color:var(--red)" onclick="deletePlayer()">Remove</button>
+              <span id="okMsg" style="font-size:12px;color:var(--green);font-weight:600;display:none">✓ Saved!</span>
+            </div>
           </div>
+          <div id="logGrid" class="log-grid"></div>
         </div>
       </div>
     </section>
@@ -524,8 +534,10 @@ main{flex:1;padding:16px 16px calc(var(--nav) + var(--safe) + 16px);max-width:10
     <!-- PLAYER CARD -->
     <section id="profile" class="section">
       <div class="fstrip">
-        <select id="profileSel" onchange="renderProfileCard()" style="flex:1"></select>
+        <select id="profileSel" onchange="renderProfileCard()" style="flex:1;min-height:44px;font-size:15px"></select>
       </div>
+
+      <!-- Hero card -->
       <div class="panel">
         <div class="profile-top">
           <div class="profile-av" id="pAvatar">--</div>
@@ -540,33 +552,102 @@ main{flex:1;padding:16px 16px calc(var(--nav) + var(--safe) + 16px);max-width:10
         </div>
         <div id="pRank" style="color:var(--muted);font-size:11px;margin-top:6px"></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div class="panel" style="grid-column:span 2">
-          <div class="panel-title">Performance Trend</div>
-          <div class="panel-sub">Week-by-week progression</div>
-          <div style="position:relative;height:200px"><canvas id="trendC"></canvas></div>
+
+      <!-- ── COACH METRIC EDITOR (coach/admin only) ── -->
+      <div class="panel coach-edit-panel coach-only" style="display:none;border-color:rgba(245,197,66,.2);background:rgba(245,197,66,.03)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+          <div>
+            <div class="panel-title" style="color:var(--gold)">✎ Log / Edit Metrics</div>
+            <div class="panel-sub" style="margin-bottom:0">Add or update this player's tracked data</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px">
+              <label class="fl" style="margin:0;white-space:nowrap">Week #</label>
+              <input type="number" id="editWkNum" inputmode="numeric" min="1" placeholder="1"
+                oninput="onEditWkChange()"
+                style="width:70px;padding:9px 10px;font-size:16px;border-radius:8px"/>
+            </div>
+            <button class="btn btn-gold btn-sm btn-auto" onclick="saveProfileMetrics()">💾 Save</button>
+            <span id="editSaveMsg" style="font-size:12px;color:var(--green);font-weight:600;display:none">✓ Saved!</span>
+          </div>
+        </div>
+        <div id="editMetricGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"></div>
+        <div style="margin-top:12px">
+          <label class="fl">Coach Note for this session</label>
+          <textarea id="editSessionNote" placeholder="Technique cue, observation, drill focus..." style="min-height:72px;font-size:15px"></textarea>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div class="panel">
-          <div class="panel-title">Current Metrics</div>
-          <div class="panel-sub">Latest week data</div>
-          <table id="pMets"></table>
+
+      <!-- ── EDIT PLAYER INFO (coach/admin only) ── -->
+      <div class="panel coach-only" id="editPlayerInfoPanel" style="display:none;border-color:rgba(74,179,244,.2);background:rgba(74,179,244,.025)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div>
+            <div class="panel-title" style="color:var(--blue)">✏️ Edit Player Info</div>
+            <div class="panel-sub" style="margin-bottom:0">Update name, role, position, team</div>
+          </div>
+          <button class="btn btn-blue btn-sm btn-auto" onclick="savePlayerInfoFromCard()">💾 Save Info</button>
         </div>
-        <div class="panel">
-          <div class="panel-title">Coach Notes</div>
-          <div class="panel-sub">Recent entries</div>
-          <div id="pNotesList"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fld" style="grid-column:span 2;margin:0">
+            <label class="fl">Full Name</label>
+            <input id="pcName" placeholder="First Last" style="font-size:16px"/>
+          </div>
+          <div class="fld" style="margin:0">
+            <label class="fl">Primary Role</label>
+            <select id="pcRole" onchange="onPcRoleChange()" style="font-size:15px">
+              <option value="Catcher">Catcher</option>
+              <option value="Pitcher">Pitcher</option>
+              <option value="Hitter">Hitter</option>
+            </select>
+          </div>
+          <div class="fld" style="margin:0">
+            <label class="fl">Also Pitches/Catches?</label>
+            <select id="pcDualRole" style="font-size:15px">
+              <option value="">No dual role</option>
+              <option value="Pitcher">Also Pitches</option>
+              <option value="Catcher">Also Catches</option>
+            </select>
+          </div>
+          <div class="fld" style="margin:0">
+            <label class="fl">Position</label>
+            <input id="pcPos" placeholder="e.g. C, RHP, SS" style="font-size:16px"/>
+          </div>
+          <div class="fld" style="margin:0">
+            <label class="fl">Jersey #</label>
+            <input id="pcNum" type="number" inputmode="numeric" placeholder="12" style="font-size:16px"/>
+          </div>
+          <div class="fld" style="margin:0">
+            <label class="fl">Sport</label>
+            <select id="pcSport" style="font-size:15px">
+              <option value="baseball">Baseball</option>
+              <option value="softball">Softball</option>
+            </select>
+          </div>
+          <div class="fld" style="margin:0">
+            <label class="fl">Team</label>
+            <select id="pcTeam" style="font-size:15px"></select>
+          </div>
         </div>
+        <div id="pcSaveMsg" style="font-size:12px;color:var(--green);font-weight:600;margin-top:8px;display:none">✓ Player info saved!</div>
       </div>
-      <div class="ai-panel">
-        <div class="ai-hdr">
-          <div class="ai-dot"></div>
-          <strong style="font-size:13px;letter-spacing:.04em;flex:1">AI PLAYER INSIGHT</strong>
-          <button class="btn btn-purple btn-sm btn-auto" onclick="getAIInsight()" id="aiBtn">Generate</button>
-        </div>
-        <p id="aiText" class="ai-loading">Tap Generate for an AI-powered development report.</p>
+
+      <!-- Trend chart -->
+      <div class="panel">
+        <div class="panel-title">Performance Trend</div>
+        <div class="panel-sub">Week-by-week progression</div>
+        <div style="position:relative;height:200px"><canvas id="trendC"></canvas></div>
       </div>
+
+      <!-- Current Metrics -->
+      <div class="panel" style="margin-bottom:12px">
+        <div class="panel-title">Current Metrics</div>
+        <div class="panel-sub">Latest week data</div>
+        <table id="pMets"></table>
+      </div>
+      <!-- hidden elements kept for JS references -->
+      <div id="pNotesList" style="display:none"></div>
+      <textarea id="quickNoteText" style="display:none"></textarea>
+
     </section>
 
     <!-- COACH NOTES -->
@@ -630,13 +711,16 @@ main{flex:1;padding:16px 16px calc(var(--nav) + var(--safe) + 16px);max-width:10
 
   <!-- Mobile Bottom Nav -->
   <nav class="bnav" id="bnav">
-    <button class="bnav-btn active" onclick="show('overview',this)"><span class="ico">⌁</span><span>Home</span><div class="dot"></div></button>
-    <button class="bnav-btn" onclick="show('roster',this)"><span class="ico">▦</span><span>Roster</span><div class="dot"></div></button>
-    <button class="bnav-btn" onclick="show('wow',this)"><span class="ico">↑</span><span>Progress</span><div class="dot"></div></button>
-    <button class="bnav-btn" onclick="show('lb',this)"><span class="ico">★</span><span>Leaders</span><div class="dot"></div></button>
-    <button class="bnav-btn" onclick="show('profile',this)"><span class="ico">◉</span><span>Card</span><div class="dot"></div></button>
+    <!-- Shared tabs (all roles) -->
+    <button class="bnav-btn all-role active" onclick="show('overview',this)"><span class="ico">⌁</span><span>Home</span><div class="dot"></div></button>
+    <button class="bnav-btn all-role" onclick="show('lb',this)"><span class="ico">★</span><span>Leaders</span><div class="dot"></div></button>
+    <button class="bnav-btn all-role" onclick="show('profile',this)"><span class="ico">◉</span><span>Player</span><div class="dot"></div></button>
+    <!-- Coach/Admin tabs -->
     <button class="bnav-btn coach-only hidden" onclick="show('notes',this)"><span class="ico">✎</span><span>Notes</span><div class="dot"></div></button>
+
     <button class="bnav-btn coach-only hidden" onclick="show('addPlayer',this)"><span class="ico">＋</span><span>Add</span><div class="dot"></div></button>
+    <!-- Admin only -->
+    <button class="bnav-btn admin-only hidden" onclick="show('wow',this)"><span class="ico">↑</span><span>Progress</span><div class="dot"></div></button>
     <button class="bnav-btn admin-only hidden" onclick="show('teams',this)"><span class="ico">◆</span><span>Teams</span><div class="dot"></div></button>
     <button class="bnav-btn admin-only hidden" onclick="show('settings',this)"><span class="ico">⚙</span><span>Settings</span><div class="dot"></div></button>
   </nav>
@@ -724,27 +808,31 @@ const SHEET_URL='https://script.google.com/macros/s/AKfycbyg6FbtLBHied6n9L5H3WIS
 //  STAT DEFINITIONS
 // ══════════════════════════════════════════
 const SHARED=[{key:'sixty',label:'60 Yd Dash',unit:'s',hint:'60 yard dash time',dec:2,lower:true}];
+const ALL_METRICS=[
+  {key:'popTime', label:'Pop Time',   unit:'s',   hint:'Catch to 2B throw',    dec:2, lower:true,  roles:['Catcher']},
+  {key:'exchange',label:'Exchange',   unit:'s',   hint:'Glove to release',     dec:2, lower:true,  roles:['Catcher']},
+  {key:'throwMPH',label:'Throw MPH',  unit:'mph', hint:'Velocity to 2B',       dec:1, lower:false, roles:['Catcher']},
+  {key:'fbMPH',   label:'FB MPH',     unit:'mph', hint:'Fastball velocity',     dec:1, lower:false, roles:['Pitcher']},
+  {key:'cbMPH',   label:'CB MPH',     unit:'mph', hint:'Curveball velocity',    dec:1, lower:false, roles:['Pitcher']},
+  {key:'chMPH',   label:'Change MPH', unit:'mph', hint:'Changeup velocity',     dec:1, lower:false, roles:['Pitcher']},
+  {key:'strikePct',label:'Strike %',  unit:'%',   hint:'Strike percentage',     dec:1, lower:false, roles:['Pitcher']},
+  {key:'batSpeed',label:'Bat Speed',  unit:'mph', hint:'Average bat speed',     dec:1, lower:false, roles:['Hitter']},
+  {key:'exitVelo',label:'Exit Velo',  unit:'mph', hint:'Exit velocity',         dec:1, lower:false, roles:['Hitter']},
+  {key:'sixty',   label:'60 Yd Dash', unit:'s',   hint:'60 yard dash time',     dec:2, lower:true,  roles:['Catcher','Pitcher','Hitter']}
+];
+// getStats(role) returns metrics for one role, or ALL if player has dual roles
+function getStats(role){
+  if(!role) return ALL_METRICS;
+  const roles=Array.isArray(role)?role:[role];
+  return ALL_METRICS.filter(m=>m.roles.some(r=>roles.includes(r)));
+}
+// For display (current metrics table, wow, leaderboard) use primary role only
 const STATS={
-  Catcher:[
-    {key:'popTime',label:'Pop Time',unit:'s',hint:'Catch to 2B throw',dec:2,lower:true},
-    {key:'exchange',label:'Exchange',unit:'s',hint:'Glove to release',dec:2,lower:true},
-    {key:'throwMPH',label:'Throw MPH',unit:'mph',hint:'Velocity to 2B',dec:1,lower:false},
-    ...SHARED
-  ],
-  Pitcher:[
-    {key:'fbMPH',label:'FB MPH',unit:'mph',hint:'Fastball velocity',dec:1,lower:false},
-    {key:'cbMPH',label:'CB MPH',unit:'mph',hint:'Curveball velocity',dec:1,lower:false},
-    {key:'chMPH',label:'Change MPH',unit:'mph',hint:'Changeup velocity',dec:1,lower:false},
-    {key:'strikePct',label:'Strike %',unit:'%',hint:'Strike percentage',dec:1,lower:false},
-    ...SHARED
-  ],
-  Hitter:[
-    {key:'batSpeed',label:'Bat Speed',unit:'mph',hint:'Average bat speed',dec:1,lower:false},
-    {key:'exitVelo',label:'Exit Velo',unit:'mph',hint:'Exit velocity',dec:1,lower:false},
-    ...SHARED
-  ]
+  Catcher: ALL_METRICS.filter(m=>m.roles.includes('Catcher')),
+  Pitcher: ALL_METRICS.filter(m=>m.roles.includes('Pitcher')),
+  Hitter:  ALL_METRICS.filter(m=>m.roles.includes('Hitter'))
 };
-const ALL_KEYS=[...new Set(Object.values(STATS).flat().map(s=>s.key))];
+const ALL_KEYS=[...new Set(ALL_METRICS.map(s=>s.key))];
 const HDR=['id','name','team','role','sport','position','number','week',...ALL_KEYS];
 const RC={
   Catcher:{accent:'#4ab3f4',bg:'rgba(74,179,244,.15)',tx:'#4ab3f4'},
@@ -861,12 +949,19 @@ function launchDash(){
   // Show mobile sync row
   const msr=document.getElementById('mSyncRow');
   if(msr&&window.innerWidth<768) msr.style.display='flex';
-  // Role visibility
+  // Role visibility — sidebar
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAdmin?'':'none');
   document.querySelectorAll('.coach-only').forEach(el=>el.style.display=(isAdmin||isCoach)?'':'none');
   // Mobile nav coach/admin buttons
   document.querySelectorAll('.bnav-btn.coach-only').forEach(el=>el.classList.toggle('hidden',!(isAdmin||isCoach)));
   document.querySelectorAll('.bnav-btn.admin-only').forEach(el=>el.classList.toggle('hidden',!isAdmin));
+  // Coach profile editor panels — renderProfileCard handles per-player show/hide
+  // Just set initial visibility; renderProfileCard will refine on navigation
+  // Coach quick bar on overview
+  const cqb = document.getElementById('coachQuickBar');
+  if(cqb) cqb.style.display=(isAdmin||isCoach)?'block':'none';
+  const ctl = document.getElementById('coachTeamLabel');
+  if(ctl) ctl.textContent = isAdmin ? 'Admin — all teams visible' : 'Team: '+session.team;
   // Roster team filter
   const rtf=document.getElementById('rTeamFilter');
   if(rtf) rtf.style.display=isAdmin?'':'none';
@@ -958,9 +1053,8 @@ function fillTeamSelects(){
   // roster team filter
   const rtf=document.getElementById('rTeamFilter');
   if(rtf){const cur=rtf.value;rtf.innerHTML='<option value="all">All Teams</option>'+teams.map(t=>`<option value="${t.name}"${t.name===cur?' selected':''}>${t.name}</option>`).join('');}
-  // profile select
-  const ps=document.getElementById('profileSel');
-  if(ps){const vl=visPlayers();ps.innerHTML=vl.map(p=>`<option value="${p.id}">${p.name} (${p.role})</option>`).join('')||'<option>No players</option>';}
+  // profile select — use fillProfileSelector to preserve current choice
+  fillProfileSelector();
 }
 
 function visPlayers(){
@@ -1033,7 +1127,7 @@ function openDetail(id){
   document.getElementById('dName').textContent=p.name;
   document.getElementById('dMeta').textContent=[p.team,p.role,p.sport,p.position,p.number?'#'+p.number:''].filter(Boolean).join(' · ');
   const wks=p.weeks||[];const lat=wks[wks.length-1];const prv=wks[wks.length-2];
-  const stats=STATS[p.role]||[];
+  const stats=STATS[p.role]||[]; // used for current metrics display tiles
   document.getElementById('dMetrics').innerHTML=stats.map(s=>{
     const v=lat&&lat[s.key]!=null?Number(lat[s.key]):undefined;
     const pv=prv&&prv[s.key]!=null?Number(prv[s.key]):undefined;
@@ -1043,9 +1137,39 @@ function openDetail(id){
   }).join('');
   drawChart(p,'progChart',pChart,c=>pChart=c,'chartLegend');
   const nextWk=(wks.length||0)+1;
+  // Build all-metrics log grid grouped by category
+  const groups=[
+    {label:'Catching', color:'var(--blue)',  metrics:ALL_METRICS.filter(m=>m.roles.includes('Catcher')&&m.key!=='sixty')},
+    {label:'Pitching', color:'var(--gold)',  metrics:ALL_METRICS.filter(m=>m.roles.includes('Pitcher')&&m.key!=='sixty')},
+    {label:'Hitting',  color:'var(--red)',   metrics:ALL_METRICS.filter(m=>m.roles.includes('Hitter')&&m.key!=='sixty')},
+    {label:'Speed',    color:'var(--green)', metrics:ALL_METRICS.filter(m=>m.key==='sixty')}
+  ];
+  const groupHTML=groups.map(g=>`
+    <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;
+      padding:7px 0 3px;border-bottom:1px solid var(--border);margin-bottom:2px">
+      <div style="width:3px;height:13px;background:${g.color};border-radius:2px;flex-shrink:0"></div>
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${g.color}">${g.label}</span>
+    </div>
+    ${g.metrics.map(s=>`<div class="log-fld">
+      <label>${s.label}<span style="font-size:9px;color:var(--muted);margin-left:3px">${s.unit}</span></label>
+      <input type="number" id="ls_${s.key}" step="${s.dec>=2?'0.01':'0.1'}"
+        placeholder="--" inputmode="decimal" autocomplete="off"
+        style="background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:8px;
+          padding:10px 11px;font-size:16px;color:var(--text);outline:none;width:100%;
+          font-family:'JetBrains Mono',monospace;transition:border-color .2s"
+        onfocus="this.style.borderColor='rgba(245,197,66,.5)'"
+        onblur="this.style.borderColor='var(--border2)'"/>
+      <div class="log-hint">${s.hint}</div>
+    </div>`).join('')}
+  `).join('');
   document.getElementById('logGrid').innerHTML=
-    `<div class="log-fld"><label>Week #</label><input type="number" id="lWk" value="${nextWk}" min="1" inputmode="numeric"/></div>`+
-    stats.map(s=>`<div class="log-fld"><label>${s.label} (${s.unit})</label><input type="number" id="ls_${s.key}" step="${s.dec>=2?'0.01':'0.1'}" placeholder="--" inputmode="decimal"/><div class="log-hint">${s.hint}</div></div>`).join('');
+    `<div class="log-fld" style="grid-column:1/-1">
+      <label style="font-size:11px;font-weight:700;color:var(--gold)">WEEK #</label>
+      <input type="number" id="lWk" value="${nextWk}" min="1" inputmode="numeric"
+        style="background:rgba(245,197,66,.08);border:1px solid rgba(245,197,66,.3);
+          border-radius:8px;padding:11px 13px;font-size:18px;font-weight:700;
+          color:var(--gold);outline:none;width:100%;font-family:'JetBrains Mono',monospace"/>
+    </div>`+groupHTML;
   document.getElementById('detailWrap').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function closeDetail(){document.getElementById('detailWrap').style.display='none';activeId=null;if(pChart){pChart.destroy();pChart=null;}renderRoster();}
@@ -1055,7 +1179,7 @@ function saveWeek(){
   if(!p.weeks)p.weeks=[];
   const wn=parseInt(document.getElementById('lWk').value)||p.weeks.length+1;
   const entry={week:wn};
-  (STATS[p.role]||[]).forEach(s=>{const el=document.getElementById('ls_'+s.key);if(el&&el.value!=='')entry[s.key]=parseFloat(el.value);});
+  ALL_METRICS.forEach(s=>{const el=document.getElementById('ls_'+s.key);if(el&&el.value!=='')entry[s.key]=parseFloat(el.value);});
   const ei=p.weeks.findIndex(w=>w.week===wn);
   if(ei>=0)p.weeks[ei]=entry;else p.weeks.push(entry);
   p.weeks.sort((a,b)=>a.week-b.week);
@@ -1178,17 +1302,28 @@ function buildLB(src){
 // ══════════════════════════════════════════
 //  PLAYER CARD
 // ══════════════════════════════════════════
-function renderProfileCard(){
+function fillProfileSelector(){
+  // Populate the dropdown WITHOUT resetting the current selection
   const ps=document.getElementById('profileSel');if(!ps)return;
   const vis=visPlayers();
+  const cur=ps.value; // preserve current selection
   ps.innerHTML=vis.map(p=>`<option value="${p.id}">${p.name} (${p.role})</option>`).join('')||'<option>No players</option>';
+  // Restore previous selection if still valid
+  if(cur && vis.find(x=>x.id===cur)) ps.value=cur;
+}
+
+function renderProfileCard(){
+  const ps=document.getElementById('profileSel');if(!ps)return;
+  fillProfileSelector(); // populate options but keep current selection
+  const vis=visPlayers();
   const p=vis.find(x=>x.id===ps.value)||vis[0];if(!p)return;
   const rc=RC[p.role]||RC.Hitter;
   document.getElementById('pAvatar').textContent=ini(p.name);
   document.getElementById('pAvatar').style.borderColor=rc.accent;
   document.getElementById('pAvatar').style.color=rc.tx;
   document.getElementById('pName').textContent=p.name;
-  document.getElementById('pMeta').textContent=[p.team,p.role,p.sport,p.position,p.number?'#'+p.number:''].filter(Boolean).join(' · ');
+  const roleDisplay = p.dualRole ? p.role+' / '+p.dualRole : p.role;
+  document.getElementById('pMeta').textContent=[p.team,roleDisplay,p.sport,p.position,p.number?'#'+p.number:''].filter(Boolean).join(' · ');
   const wks=p.weeks||[];const lat=wks[wks.length-1]||{};const prv=wks[wks.length-2]||null;
   const stats=STATS[p.role]||[];
   const vals=stats.map(s=>lat[s.key]!=null?Number(lat[s.key]):null).filter(v=>v!=null);
@@ -1208,40 +1343,175 @@ function renderProfileCard(){
     stats.filter(s=>lat[s.key]!=null).map(s=>{const v=Number(lat[s.key]);const pv2=prv&&prv[s.key]!=null?Number(prv[s.key]):null;let delta='--';if(pv2!=null){const d=v-pv2;const imp=s.lower?d<0:d>0;delta=`<span style="color:${d===0?'var(--muted)':imp?'var(--green)':'var(--red)'};font-weight:700">${d>0?'+':''}${d.toFixed(s.dec)}</span>`;}return`<tr><td style="color:var(--muted)">${s.label}</td><td class="num">${v.toFixed(s.dec)}${s.unit}</td><td>${delta}</td></tr>`;}).join('');
   const pNotes=notes.filter(n=>n.playerId===p.id).slice(-3).reverse();
   document.getElementById('pNotesList').innerHTML=pNotes.length?pNotes.map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-size:10px;color:var(--gold);font-weight:700;margin-bottom:3px">${n.date}</div><div style="font-size:12.5px;color:var(--muted);line-height:1.6">${n.text}</div></div>`).join(''):'<div style="color:var(--muted);font-size:12.5px;padding:8px 0">No notes yet.</div>';
+  // ── Coach editor — runs ALWAYS regardless of whether player has week data ──
+  const isCoach = session && (session.type==='coach'||session.type==='admin');
+  document.querySelectorAll('#profile .coach-only').forEach(el=>el.style.display=isCoach?'block':'none');
+  if(isCoach){
+    const nextWk = (wks.length||0) + 1;
+    const wkEl = document.getElementById('editWkNum');
+    if(wkEl) wkEl.value = nextWk;
+    buildEditMetricGrid(p, wks);
+    const pcName = document.getElementById('pcName'); if(pcName) pcName.value = p.name||'';
+    const pcRole = document.getElementById('pcRole'); if(pcRole) pcRole.value = p.role||'Hitter';
+    const pcDual = document.getElementById('pcDualRole'); if(pcDual) pcDual.value = p.dualRole||'';
+    const pcPos  = document.getElementById('pcPos');  if(pcPos)  pcPos.value  = p.position||'';
+    const pcNum  = document.getElementById('pcNum');  if(pcNum)  pcNum.value  = p.number||'';
+    const pcSport= document.getElementById('pcSport');if(pcSport)pcSport.value= p.sport||'baseball';
+    const pcTeam = document.getElementById('pcTeam');
+    if(pcTeam){
+      pcTeam.innerHTML = teams.map(t=>`<option value="${t.name}"${t.name===p.team?' selected':''}>${t.name}</option>`).join('')||'<option>No teams</option>';
+    }
+    const pcMsg = document.getElementById('pcSaveMsg'); if(pcMsg) pcMsg.style.display='none';
+    onPcRoleChange();
+    const qnp = document.getElementById('quickNoteText'); if(qnp) qnp.value='';
+  }
+
+  // ── Trend chart — only if there's data ──
   if(window._trendChart)window._trendChart.destroy();
-  const tc=document.getElementById('trendC');if(!tc||!wks.length)return;
-  const used2=(STATS[p.role]||[]).filter(s=>wks.some(w=>w[s.key]!=null));
+  const tc=document.getElementById('trendC');
+  if(!tc||!wks.length) return;
+  const used2=ALL_METRICS.filter(s=>wks.some(w=>w[s.key]!=null));
   window._trendChart=new Chart(tc,{type:'line',data:{labels:wks.map(w=>'Wk '+w.week),datasets:used2.map((s,i)=>({label:s.label,data:wks.map(w=>w[s.key]!=null?Number(w[s.key]):null),borderColor:LC[i%LC.length],backgroundColor:LC[i%LC.length]+'18',tension:.4,pointRadius:4,borderWidth:2,spanGaps:true,pointBackgroundColor:LC[i%LC.length],pointBorderColor:'#07090d',pointBorderWidth:2}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7f96',font:{size:10}}}},scales:{y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#6b7f96',font:{size:10}}},x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6b7f96',font:{size:10},autoSkip:false,maxRotation:0}}}}});
-  document.getElementById('aiText').className='ai-loading';
-  document.getElementById('aiText').innerText='Tap Generate for an AI-powered development report.';
-  document.getElementById('aiBtn').disabled=false;document.getElementById('aiBtn').innerText='Generate';
+}
+
+function onPcRoleChange(){
+  const role = document.getElementById('pcRole')?.value||'Hitter';
+  const dual = document.getElementById('pcDualRole');
+  if(!dual) return;
+  // Show relevant dual options based on primary
+  const opts = ['<option value="">No dual role</option>'];
+  if(role==='Catcher') opts.push('<option value="Pitcher">Also Pitches</option>');
+  if(role==='Pitcher') opts.push('<option value="Catcher">Also Catches</option>');
+  if(role==='Hitter')  opts.push('<option value="Pitcher">Also Pitches</option>','<option value="Catcher">Also Catches</option>');
+  dual.innerHTML = opts.join('');
+}
+
+function savePlayerInfoFromCard(){
+  const ps = document.getElementById('profileSel');if(!ps)return;
+  const vis = visPlayers();
+  const p = vis.find(x=>x.id===ps.value)||vis[0];if(!p)return;
+  const name  = document.getElementById('pcName')?.value?.trim();
+  const role  = document.getElementById('pcRole')?.value;
+  const dual  = document.getElementById('pcDualRole')?.value||null;
+  const pos   = document.getElementById('pcPos')?.value?.trim();
+  const num   = document.getElementById('pcNum')?.value;
+  const sport = document.getElementById('pcSport')?.value;
+  const team  = document.getElementById('pcTeam')?.value;
+  if(name) p.name = name;
+  if(role) p.role = role;
+  p.dualRole = dual||null;
+  if(pos !== undefined) p.position = pos;
+  if(num !== undefined) p.number = num;
+  if(sport) p.sport = sport;
+  if(team) p.team = team;
+  persist(); pushSheet();
+  const msg = document.getElementById('pcSaveMsg');
+  if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
+  toast('Player info updated ✓','success');
+  renderProfileCard();
+  renderRoster();
+  fillTeamSelects();
+}
+
+function buildEditMetricGrid(p, wks){
+  const grid = document.getElementById('editMetricGrid');
+  if(!grid) return;
+  const wkNum = parseInt(document.getElementById('editWkNum')?.value)||0;
+  const existingWk = wks.find(w=>w.week===wkNum) || wks[wks.length-1] || {};
+
+  // Show ALL metrics grouped by category — coach can fill any combination
+  const groups = [
+    {label:'Catching', color:'var(--blue)',  metrics: ALL_METRICS.filter(m=>m.roles.includes('Catcher')&&m.key!=='sixty')},
+    {label:'Pitching', color:'var(--gold)',  metrics: ALL_METRICS.filter(m=>m.roles.includes('Pitcher')&&m.key!=='sixty')},
+    {label:'Hitting',  color:'var(--red)',   metrics: ALL_METRICS.filter(m=>m.roles.includes('Hitter')&&m.key!=='sixty')},
+    {label:'Speed',    color:'var(--green)', metrics: ALL_METRICS.filter(m=>m.key==='sixty')}
+  ];
+
+  grid.innerHTML = groups.map(g=>`
+    <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;
+      padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px">
+      <div style="width:3px;height:14px;background:${g.color};border-radius:2px"></div>
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;
+        letter-spacing:.1em;color:${g.color}">${g.label}</span>
+    </div>
+    ${g.metrics.map(s=>`
+    <div>
+      <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:4px;
+        font-weight:700;text-transform:uppercase;letter-spacing:.07em">${s.label}
+        <span style="color:rgba(107,127,150,.5);font-weight:400;text-transform:none"> ${s.unit}</span>
+      </label>
+      <input type="number" id="em_${s.key}"
+        step="${s.dec>=2?'0.01':'0.1'}" inputmode="decimal"
+        placeholder="${s.hint}"
+        value="${existingWk[s.key]!=null?Number(existingWk[s.key]).toFixed(s.dec):''}"
+        style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border2);
+          border-radius:9px;padding:11px 12px;font-size:16px;color:var(--text);outline:none;
+          transition:border-color .2s;font-family:'JetBrains Mono',monospace"
+        onfocus="this.style.borderColor='rgba(245,197,66,.5)'"
+        onblur="this.style.borderColor='var(--border2)'"/>
+    </div>`).join('')}
+  `).join('');
 }
 
 // ══════════════════════════════════════════
-//  AI INSIGHT
+//  COACH METRIC EDITOR SAVE
 // ══════════════════════════════════════════
-async function getAIInsight(){
-  const ps=document.getElementById('profileSel');const vis=visPlayers();
-  const p=vis.find(x=>x.id===ps.value)||vis[0];if(!p)return;
-  const wks=p.weeks||[];const lat=wks[wks.length-1]||{};
-  const stats=STATS[p.role]||[];
-  const metricLines=stats.map(s=>lat[s.key]!=null?`- ${s.label}: ${Number(lat[s.key]).toFixed(s.dec)} ${s.unit}`:'').filter(Boolean).join('\n');
-  const playerNotes=notes.filter(n=>n.playerId===p.id).map(n=>n.text).join('; ')||'None';
-  document.getElementById('aiBtn').disabled=true;document.getElementById('aiBtn').innerText='…';
-  document.getElementById('aiText').className='ai-loading';document.getElementById('aiText').innerText='Generating...';
-  const prompt=`You are an expert baseball/softball development coach. Analyze this player and give a concise 3-4 sentence development report.
-Player: ${p.name} | Sport: ${p.sport} | Role: ${p.role} | Position: ${p.position||'N/A'} | Jersey: ${p.number||'N/A'}
-Team: ${p.team} | Weeks tracked: ${wks.length}
-Latest Metrics:\n${metricLines||'No metrics logged yet'}
-Coach Notes: ${playerNotes}
-Cover: (1) top strength, (2) main development priority, (3) one specific drill/focus, (4) realistic short-term projection. Be specific, use coach-to-coach language.`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();
-    document.getElementById('aiText').className='';
-    document.getElementById('aiText').innerText=data.content?.map(c=>c.text||'').join('')||'Unable to generate.';
-  }catch(e){document.getElementById('aiText').innerText='Analysis unavailable — check connection.';}
-  document.getElementById('aiBtn').disabled=false;document.getElementById('aiBtn').innerText='Regenerate';
+function saveProfileMetrics(){
+  const ps = document.getElementById('profileSel'); if(!ps) return;
+  const vis = visPlayers();
+  const p = vis.find(x=>x.id===ps.value)||vis[0]; if(!p) return;
+  const wkNum = parseInt(document.getElementById('editWkNum')?.value);
+  if(!wkNum||wkNum<1){toast('Enter a valid week number','error');return;}
+  if(!p.weeks) p.weeks=[];
+  const entry = {week:wkNum};
+  let filled = 0;
+  ALL_METRICS.forEach(s=>{
+    const el = document.getElementById('em_'+s.key);
+    if(el && el.value!==''){entry[s.key]=parseFloat(el.value);filled++;}
+  });
+  if(!filled){toast('Enter at least one metric value','error');return;}
+  // Upsert week
+  const ei = p.weeks.findIndex(w=>w.week===wkNum);
+  if(ei>=0) p.weeks[ei]={...p.weeks[ei],...entry};
+  else p.weeks.push(entry);
+  p.weeks.sort((a,b)=>a.week-b.week);
+  // Save coach note if filled
+  const noteText = document.getElementById('editSessionNote')?.value?.trim();
+  if(noteText){
+    notes.unshift({id:'n'+Date.now(),playerId:p.id,playerName:p.name,
+      date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+      text:'[Week '+wkNum+'] '+noteText});
+    const el = document.getElementById('editSessionNote');if(el)el.value='';
+  }
+  persist(); pushSheet();
+  // Show saved feedback
+  const msg = document.getElementById('editSaveMsg');
+  if(msg){msg.style.display='inline';setTimeout(()=>msg.style.display='none',2500);}
+  toast('Metrics saved for Week '+wkNum+' ✓','success');
+  // Re-render card to show updated data
+  renderProfileCard();
+}
+
+function saveQuickNote(){
+  const ps = document.getElementById('profileSel');if(!ps) return;
+  const vis = visPlayers();
+  const p = vis.find(x=>x.id===ps.value)||vis[0];if(!p)return;
+  const text = document.getElementById('quickNoteText')?.value?.trim();
+  if(!text){toast('Enter a note first','error');return;}
+  notes.unshift({id:'n'+Date.now(),playerId:p.id,playerName:p.name,
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),text});
+  persist();
+  const el = document.getElementById('quickNoteText');if(el)el.value='';
+  toast('Note saved','success');
+  renderProfileCard();
+}
+
+// Rebuild edit grid when week number changes so values pre-fill from that week
+function onEditWkChange(){
+  const ps = document.getElementById('profileSel');if(!ps)return;
+  const vis = visPlayers();
+  const p = vis.find(x=>x.id===ps.value)||vis[0];if(!p)return;
+  buildEditMetricGrid(p, p.weeks||[]);
 }
 
 // ══════════════════════════════════════════
